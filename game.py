@@ -86,6 +86,7 @@ FALLBACK_LETTER = {
 }
 
 ANIM_SECS = 0.20   # animation duration
+PIECE_TEXTURE_PADDING = 8
 
 
 # ---------------------------------------------------------------------------
@@ -222,8 +223,14 @@ class ChessGame:
 
     def _init_piece_textures(self):
         self._piece_textures: dict[tuple[int, bool], pygame.Surface] = {}
-        tex_dir = Path(__file__).resolve().parent / "lichess texture"
-        if not tex_dir.is_dir():
+        base_dir = Path(__file__).resolve().parent
+        tex_dir = None
+        for dirname in ("lichess texture", "lichess_texture", "lichess-texture"):
+            candidate = base_dir / dirname
+            if candidate.is_dir():
+                tex_dir = candidate
+                break
+        if tex_dir is None:
             return
 
         piece_codes = {
@@ -235,7 +242,7 @@ class ChessGame:
             chess.PAWN: "P",
         }
 
-        target_size = (SQ - 8, SQ - 8)
+        target_size = (SQ - PIECE_TEXTURE_PADDING, SQ - PIECE_TEXTURE_PADDING)
         for color, prefix in ((chess.WHITE, "w"), (chess.BLACK, "b")):
             for pt, code in piece_codes.items():
                 base = f"{prefix}{code}"
