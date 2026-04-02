@@ -87,6 +87,7 @@ FALLBACK_LETTER = {
 
 ANIM_SECS = 0.20   # animation duration
 PIECE_TEXTURE_PADDING = 8
+TEXTURE_DIR_VARIANTS = ("lichess texture", "lichess_texture", "lichess-texture")
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +226,7 @@ class ChessGame:
         self._piece_textures: dict[tuple[int, bool], pygame.Surface] = {}
         base_dir = Path(__file__).resolve().parent
         tex_dir = None
-        for dirname in ("lichess texture", "lichess_texture", "lichess-texture"):
+        for dirname in TEXTURE_DIR_VARIANTS:
             candidate = base_dir / dirname
             if candidate.is_dir():
                 tex_dir = candidate
@@ -258,7 +259,7 @@ class ChessGame:
                             surf, target_size
                         )
                         break
-                    except Exception:
+                    except (pygame.error, OSError, ValueError):
                         continue
 
     # ====================================================================
