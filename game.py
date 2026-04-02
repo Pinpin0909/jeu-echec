@@ -86,8 +86,8 @@ FALLBACK_LETTER = {
 }
 
 ANIM_SECS = 0.20   # animation duration
-PIECE_TEXTURE_PADDING = 8
-TEXTURE_DIR_VARIANTS = ("lichess texture", "lichess_texture", "lichess-texture")
+PIECE_TEXTURE_PADDING = 8  # pixel padding when fitting a texture inside a square
+TEXTURE_DIR_VARIANTS = ("lichess texture", "lichess_texture", "lichess-texture")  # support common folder naming variants
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +223,7 @@ class ChessGame:
         self._cf  = pygame.font.SysFont("segoeui,arial,sans", 13)
 
     def _init_piece_textures(self):
+        # key format: (piece_type, color) where color is chess.WHITE / chess.BLACK
         self._piece_textures: dict[tuple[int, bool], pygame.Surface] = {}
         base_dir = Path(__file__).resolve().parent
         tex_dir = None
@@ -260,6 +261,7 @@ class ChessGame:
                         )
                         break
                     except (pygame.error, OSError, ValueError):
+                        print(f"[textures] impossible de charger {path}")
                         continue
 
     # ====================================================================
