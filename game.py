@@ -22,6 +22,7 @@ import sys
 import math
 import time
 import threading
+from pathlib import Path
 
 import pygame
 import chess
@@ -156,6 +157,7 @@ class ChessGame:
         self.clock  = pygame.time.Clock()
 
         self._init_fonts()
+        self._init_piece_textures()
 
         # ── game state ──────────────────────────────────────────────────
         self.board      = chess.Board()
@@ -217,6 +219,40 @@ class ChessGame:
         self._uf  = pygame.font.SysFont("segoeui,arial,sans", 22)
         self._usf = pygame.font.SysFont("segoeui,arial,sans", 16)
         self._cf  = pygame.font.SysFont("segoeui,arial,sans", 13)
+
+    def _init_piece_textures(self):
+        self._piece_textures: dict[tuple[int, bool], pygame.Surface] = {}
+        tex_dir = Path(__file__).resolve().parent / "lichess texture"
+        if not tex_dir.is_dir():
+            return
+
+        piece_codes = {
+            chess.KING: "K",
+            chess.QUEEN: "Q",
+            chess.ROOK: "R",
+            chess.BISHOP: "B",
+            chess.KNIGHT: "N",
+            chess.PAWN: "P",
+        }
+
+        target_size = (SQ - 8, SQ - 8)
+        for color, prefix in ((chess.WHITE, "w"), (chess.BLACK, "b")):
+            for pt, code in piece_codes.items():
+                base = f"{prefix}{code}"
+                candidates = (tex_dir / f"{base}.svg",
+                              tex_dir / f"{base}.png",
+                              tex_dir / f"{base}.webp")
+                for path in candidates:
+                    if not path.exists():
+                        continue
+                    try:
+                        surf = pygame.image.load(str(path)).convert_alpha()
+                        self._piece_textures[(pt, color)] = pygame.transform.smoothscale(
+                            surf, target_size
+                        )
+                        break
+                    except Exception:
+                        continue
 
     # ====================================================================
     # Coordinate utilities
@@ -607,6 +643,11 @@ class ChessGame:
 
     def _draw_piece(self, pt: int, pc: bool, cx: int, cy: int):
         """Render a chess piece centred at (cx, cy)."""
+        tex = self._piece_textures.get((pt, pc))
+        if tex is not None:
+            self.screen.blit(tex, tex.get_rect(center=(cx, cy)))
+            return
+
         fill    = C_W_FILL    if pc == chess.WHITE else C_B_FILL
         outline = C_W_OUTLINE if pc == chess.WHITE else C_B_OUTLINE
 
